@@ -42,7 +42,7 @@
   .chip[aria-pressed="true"]{ background:var(--youth); border-color:var(--youth); color:#fff; }
 
   .list{ display:grid; gap:16px; padding-bottom:96px; }
-  .job{ background:#fff; border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; }
+  .job{ scroll-margin-top:84px; background:#fff; border:1px solid var(--line); border-radius:var(--radius-md); overflow:hidden; }
   .job.closed{ opacity:.62; }
   .job summary{ list-style:none; cursor:pointer; padding:22px 24px; display:grid; gap:10px; }
   .job summary::-webkit-details-marker{ display:none; }
@@ -70,6 +70,7 @@
   .apply-row span:first-child{ width:72px; flex:none; color:var(--ink-soft); }
   .apply-row a{ color:var(--youth); font-weight:500; text-decoration:underline; text-underline-offset:3px; }
 
+  .poster{ display:block; width:100%; max-width:480px; height:auto; border-radius:12px; border:1px solid var(--line); }
   .empty{ text-align:center; padding:56px 20px; border:1.5px dashed var(--line); border-radius:var(--radius-md); color:var(--ink-soft); }
   .empty p + p{ margin-top:6px; font-size:14px; }
 
@@ -144,7 +145,8 @@
     ].filter(x => x[1]);
     const applyRows = [
       ['방법', a.method && esc(a.method)],
-      ['이메일', a.email && `<a href="mailto:${esc(a.email)}">${esc(a.email)}</a>`],
+      ['이메일', a.email && `<a href="mailto:${esc(a.email)}${a.subject?'?subject='+encodeURIComponent(a.subject):''}">${esc(a.email)}</a>`],
+      ['메일 제목', a.subject && esc(a.subject)],
       ['전화', a.phone && `<a href="tel:${esc(a.phone.replace(/[^0-9+]/g,''))}">${esc(a.phone)}</a>`],
       ['지원서', a.link && `<a href="${esc(a.link)}" target="_blank" rel="noopener">온라인 지원하기</a>`],
       ['제출서류', Array.isArray(a.documents) && a.documents.length && esc(a.documents.join(', '))]
@@ -167,8 +169,11 @@
         ${list('자격 요건', j.requirements)}
         ${list('우대 사항', j.preferred)}
         ${list('근무 조건·복리후생', j.benefits)}
+        ${list('채용 절차', j.process)}
         ${applyRows.length ? `<div class="apply"><h3>지원 방법</h3>${applyRows.map(([k,v])=>`<div class="apply-row"><span>${k}</span><span>${v}</span></div>`).join('')}</div>` : ''}
+        ${list('유의 사항', j.notes)}
         ${j.note ? `<p style="font-size:14px;color:var(--ink-soft)">※ ${esc(j.note)}</p>` : ''}
+        ${j.image ? `<div><h3>홍보 포스터</h3><a href="${esc(j.image)}" target="_blank" rel="noopener"><img class="poster" src="${esc(j.image)}" alt="${esc(j.title)} 홍보 포스터" loading="lazy"></a></div>` : ''}
         ${j.posted ? `<p style="font-size:13px;color:var(--ink-soft)">게시일 ${esc(fmt(j.posted))}</p>` : ''}
       </div>
     </details>`;
@@ -181,7 +186,7 @@
       "description": [j.summary, ...(j.duties||[]), ...(j.requirements||[])].filter(Boolean).join('\n'),
       "datePosted": j.posted, ...(parseDate(j.deadline) ? {"validThrough": j.deadline} : {}),
       "hiringOrganization": {"@type":"Organization","name":"세대이음 사회적협동조합","sameAs":"https://sdieum.com","logo":"https://sdieum.com/assets/logo.png"},
-      "jobLocation": {"@type":"Place","address":{"@type":"PostalAddress","streetAddress": j.location || "백석로 86번길 38, B02","addressLocality":"고양시","addressRegion":"경기도","addressCountry":"KR"}}
+      "jobLocation": {"@type":"Place","address": j.location ? {"@type":"PostalAddress","streetAddress": j.location,"addressCountry":"KR"} : {"@type":"PostalAddress","streetAddress":"백석로 86번길 38, B02","addressLocality":"고양시","addressRegion":"경기도","addressCountry":"KR"}}
     }));
     if (!items.length) return;
     const s = document.createElement('script'); s.type = 'application/ld+json';
